@@ -1,0 +1,121 @@
+SELECT TOP (1000) [company]
+      ,[location]
+      ,[industry]
+      ,[total_laid_off]
+      ,[percentage_laid_off]
+      ,[date]
+      ,[stage]
+      ,[country]
+      ,[funds_raised_millions]
+  FROM [PortfolioProject].[dbo].[world_layoffs]
+
+  ----------------------------------------------------------------------------------------------------------------
+  -- vieweing the data
+  
+  SELECT *
+  FROM world_layoffs
+
+  ----------------------------------------------------------------------------------------------------------------
+  -- removing the duplicates
+
+  SELECT company, TRIM(company)
+  FROM world_layoffs
+  ORDER BY company ASC
+
+  UPDATE world_layoffs
+  SET company = TRIM(company)
+
+  WITH duplicate_cte AS
+  (
+ SELECT *, ROW_NUMBER()
+ OVER(PARTITION BY company, location, industry, total_laid_off, percentage_laid_off, date, stage, country, funds_raised_millions ORDER BY company) AS row_num
+ FROM world_layoffs
+ )
+ SELECT *
+ FROM duplicate_cte
+ WHERE row_num > 1
+
+   WITH duplicate_cte AS
+  (
+ SELECT *, ROW_NUMBER()
+ OVER(PARTITION BY company, location, industry, total_laid_off, percentage_laid_off, date, stage, country, funds_raised_millions ORDER BY company) AS row_num
+ FROM world_layoffs
+ )
+ DELETE
+ FROM duplicate_cte
+ WHERE row_num > 1
+
+
+
+ -- double checking with the following:
+
+ SELECT *
+ FROM world_layoffs
+ WHERE company = 'Casper'
+
+ SELECT *
+ FROM world_layoffs
+ WHERE company = 'Cazoo'
+
+ SELECT *
+ FROM world_layoffs
+ WHERE company = 'Hibob'
+
+ SELECT *
+ FROM world_layoffs
+ WHERE company = 'Yahoo'
+
+ ----------------------------------------------------------------------------------------------------------------
+ -- Standardize the Data
+ 
+  SELECT *
+  FROM world_layoffs
+
+ SELECT DISTINCT country
+ FROM world_layoffs
+ ORDER BY country ASC
+
+ SELECT country, RTRIM(country,'.')
+ FROM world_layoffs
+ ORDER BY country ASC
+
+ UPDATE world_layoffs
+ SET country = RTRIM(country,'.')
+ WHERE country LIKE ('%.')
+
+ -- double check if country name with trailing '.' is standardized
+ SELECT country
+ FROM world_layoffs
+ WHERE country = 'United States.'
+
+ -- CHECK THE NULLS AND WHITESPACES IN THE industry COLUMN IF POSSIBLE TO POPULATE THEM WITH THE KNOWN DATA
+
+ SELECT *
+ FROM world_layoffs
+ WHERE industry is NULL OR industry = ''
+ ORDER BY company ASC
+
+ -- Populating the industry column with a known company data using SELF JOIN
+
+
+ SELECT *
+ FROM world_layoffs a
+ JOIN world_layoffs b
+	ON a.company = b.company
+WHERE a.industry is NULL OR a.industry = ''
+
+ UPDATE a
+ SET a.industry = b.industry
+ FROM world_layoffs a
+ JOIN world_layoffs b 
+	ON a.company = b.company
+ WHERE (a.industry IS NULL OR a.industry = 'NULL')
+ AND b.industry IS NOT NULL
+
+  SELECT *
+  FROM world_layoffs
+  WHERE company = 'Airbnb'
+
+  SELECT *
+  FROM world_layoffs
+  ORDER BY company ASC
